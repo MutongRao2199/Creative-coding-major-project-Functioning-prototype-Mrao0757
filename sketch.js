@@ -20,6 +20,13 @@ let rotatingCircles = [
   {x: 780, y: 470, radiusX: 150, radiusY: 150, initialX: 780, initialY: 470, angle: 170}
 ];
 
+// Initial radius for the center cricle growing effect
+let baseRadius = 390;
+let radiusIncrement = 0.5;
+let growing = true;
+const minBaseRadius = 70;
+const maxBaseRadius = 410;
+
 function setup() {
     // Calculate the size of the canvas
   size = Math.min(windowWidth, windowHeight);
@@ -67,7 +74,7 @@ function setup() {
     [330, 680, 20, 20]
   ];
 
-
+// Add additional background color circles
   const backgroundColorCircles = [
     [510, 280, 70], [770, 550, 100, 100], [380, 850, 130, 130]
   ];
@@ -84,7 +91,7 @@ function setup() {
   for (let pattern of backgroundColorCircles) {
     randomCircles.push({ fill: backgroundColor, pattern: pattern });
   }
-
+// Add specific color circle
 randomCircles.push({ fill: smallCircleColors[4], pattern: [520, 280, 70] });
 randomCircles.push({ fill: smallCircleColors[3], pattern: [560, 100, 15] });
 randomCircles.push({ fill: smallCircleColors[0], pattern: [580, 100, 10] });
@@ -128,6 +135,7 @@ randomCircles.push({ fill: smallCircleColors[1], pattern: [330, 680, 20, 20] });
 setInterval(() => toggleVisibility1(), 500);
 setInterval(() => toggleVisibility2(), 700);
 setInterval(updateRotatingCircles, 20);
+setInterval(breathingEffect, 20);  // Set interval for breathing effect
 }
 
 function toggleVisibility1() {
@@ -152,6 +160,20 @@ function updateRotatingCircles() {
   });
 }
 
+// Breathing effect to grow increase or decrease the central radius
+function breathingEffect() {
+  if (growing) {
+    baseRadius += radiusIncrement;
+    if (baseRadius >= maxBaseRadius) {
+      growing = false;
+    }
+  } else {
+    baseRadius -= radiusIncrement;
+    if (baseRadius <= minBaseRadius) {
+      growing = true;
+    }
+  }
+}
 
 
 function draw() {
@@ -200,9 +222,9 @@ let x = 512;
 let y = 512;
 
   // Circles in the middle
-for (let r = 390, i = 0; r >= 70; r -= 40, i++) {
-  fill(largeCircleColors[i % largeCircleColors.length]);
-  ellipse(x, y, r, r);
+  for (let r = baseRadius, i = 0; r >= 70; r -= 40, i++) {
+    fill(largeCircleColors[i % largeCircleColors.length]);
+    ellipse(x, y, r, r);
 }
 
   // Two small circles in the middle
@@ -247,12 +269,13 @@ drawSpecialCircle(160, 300, 20, 15);
       if ((smallestCirclesIndices.indexOf(i) % 2 === 0 && !visibleStates1[i]) ||
           (smallestCirclesIndices.indexOf(i) % 2 !== 0 && !visibleStates2[i])) {
         continue;
+        }
       }
-    }
     fill(circle.fill);
     ellipse(...circle.pattern);
+    }
   }
-}
+  
 }
 
 // Fit canvas and pattern to window size
