@@ -12,6 +12,14 @@ let visibleStates1 = []; // To store the visibility state of 25 stars
 let visibleStates2 = []; // To store the visibility state of 25 stars
 let smallestCirclesIndices = []; // To store the indices of the smallest 50 circles（stras）
 
+// Define the rotating circles and their initial positions and angles
+let rotatingCircles = [
+  {x: 270, y: 390, radiusX: 130, radiusY: 130, initialX: 270, initialY: 390, angle: 90},
+  {x: 380, y: 750, radiusX: 125, radiusY: 125, initialX: 380, initialY: 750, angle: 180},
+  {x: 160, y: 690, radiusX: 80, radiusY: 80, initialX: 160, initialY: 690, angle: 260},
+  {x: 780, y: 470, radiusX: 150, radiusY: 150, initialX: 780, initialY: 470, angle: 170}
+];
+
 function setup() {
     // Calculate the size of the canvas
   size = Math.min(windowWidth, windowHeight);
@@ -102,7 +110,6 @@ randomCircles.push({ fill: smallCircleColors[4], pattern: [380, 850, 100, 100] }
 randomCircles.push({ fill: smallCircleColors[0], pattern: [290, 730, 10, 10] });
 randomCircles.push({ fill: smallCircleColors[1], pattern: [330, 680, 20, 20] });
 
-
   // Sort circles by size (ascending order) and get the indices of the smallest stars
   smallestCirclesIndices = randomCircles
     .map((circle, index) => ({ index, size: circle.pattern[2] }))
@@ -120,6 +127,7 @@ randomCircles.push({ fill: smallCircleColors[1], pattern: [330, 680, 20, 20] });
 // Set intervals to toggle visibility every 500 milliseconds and 700 milliseconds
 setInterval(() => toggleVisibility1(), 500);
 setInterval(() => toggleVisibility2(), 700);
+setInterval(updateRotatingCircles, 20);
 }
 
 function toggleVisibility1() {
@@ -133,6 +141,15 @@ function toggleVisibility2() {
   for (let i = 1; i < smallestCirclesIndices.length; i += 2) {
     visibleStates2[smallestCirclesIndices[i]] = !visibleStates2[smallestCirclesIndices[i]];
   }
+}
+
+function updateRotatingCircles() {
+  rotatingCircles.forEach(circle => {
+    circle.angle += 0.01;
+    if (circle.angle > TWO_PI) {
+      circle.angle -= TWO_PI;
+    }
+  });
 }
 
 
@@ -151,14 +168,6 @@ fill(233, 75, 60);
 ellipse(x, y, radius * 2, radius * 2);
 fill(119, 197, 147);
 ellipse(x, y, radius - delta, radius - delta);
-}
-
-// Function of special pattern2
-function drawCross(x, y, horizontalLength, verticalLength, lineWidth) {
-strokeWeight(lineWidth);
-stroke('#ffffff');
-line(x, y - verticalLength / 2, x, y + verticalLength / 2);
-line(x - horizontalLength / 2, y, x + horizontalLength / 2, y);
 }
 
 // Function of special pattern3
@@ -222,18 +231,29 @@ drawSpecialCircle(160, 300, 20, 15);
 
  // Draw "randomCircles" and find smallest circle
  for (let i = 0; i < randomCircles.length; i++) {
-  if (smallestCirclesIndices.includes(i)) {
-    if ((smallestCirclesIndices.indexOf(i) % 2 === 0 && !visibleStates1[i]) ||
-        (smallestCirclesIndices.indexOf(i) % 2 !== 0 && !visibleStates2[i])) {
-      continue;
+  let circle = randomCircles[i];
+ 
+  // Check if the current circle is one of the rotating circles
+  let rotatingCircle = rotatingCircles.find(rc => rc.initialX === circle.pattern[0] && rc.initialY === circle.pattern[1]);
+  if (rotatingCircle) {
+    let angle = rotatingCircle.angle || 0;
+    let radius = dist(512, 512, rotatingCircle.initialX, rotatingCircle.initialY);
+    let newX = 512 + cos(angle) * radius;
+    let newY = 512 + sin(angle) * radius;
+    fill(circle.fill);
+    ellipse(newX, newY, circle.pattern[2], circle.pattern[3]);
+  } else {
+    if (smallestCirclesIndices.includes(i)) {
+      if ((smallestCirclesIndices.indexOf(i) % 2 === 0 && !visibleStates1[i]) ||
+          (smallestCirclesIndices.indexOf(i) % 2 !== 0 && !visibleStates2[i])) {
+        continue;
+      }
     }
+    fill(circle.fill);
+    ellipse(...circle.pattern);
   }
-  fill(randomCircles[i].fill);
-  ellipse(...randomCircles[i].pattern);
 }
 }
-
-
 
 // Fit canvas and pattern to window size
 function windowResized() {
