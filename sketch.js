@@ -8,6 +8,9 @@ let smallCircleColors = [];
 
 // To store circles whose size and color can be modified together
 let randomCircles = [];
+let visibleStates1 = []; // To store the visibility state of 25 stars
+let visibleStates2 = []; // To store the visibility state of 25 stars
+let smallestCirclesIndices = []; // To store the indices of the smallest 50 circles（stras）
 
 function setup() {
     // Calculate the size of the canvas
@@ -98,7 +101,40 @@ randomCircles.push({ fill: smallCircleColors[1], pattern: [380, 750, 125, 125] }
 randomCircles.push({ fill: smallCircleColors[4], pattern: [380, 850, 100, 100] });
 randomCircles.push({ fill: smallCircleColors[0], pattern: [290, 730, 10, 10] });
 randomCircles.push({ fill: smallCircleColors[1], pattern: [330, 680, 20, 20] });
+
+
+  // Sort circles by size (ascending order) and get the indices of the smallest stars
+  smallestCirclesIndices = randomCircles
+    .map((circle, index) => ({ index, size: circle.pattern[2] }))
+    .sort((a, b) => a.size - b.size)
+    .slice(0, 50)
+    .map(obj => obj.index);
+
+
+  // Initialize visibility states for the smallest stars
+  for (let i = 0; i < randomCircles.length; i++) {
+    visibleStates1.push(true);
+    visibleStates2.push(true);
 }
+
+// Set intervals to toggle visibility every 500 milliseconds and 700 milliseconds
+setInterval(() => toggleVisibility1(), 500);
+setInterval(() => toggleVisibility2(), 700);
+}
+
+function toggleVisibility1() {
+  for (let i = 0; i < smallestCirclesIndices.length; i += 2) {
+    visibleStates1[smallestCirclesIndices[i]] = !visibleStates1[smallestCirclesIndices[i]];
+  }
+}
+
+
+function toggleVisibility2() {
+  for (let i = 1; i < smallestCirclesIndices.length; i += 2) {
+    visibleStates2[smallestCirclesIndices[i]] = !visibleStates2[smallestCirclesIndices[i]];
+  }
+}
+
 
 
 function draw() {
@@ -184,12 +220,19 @@ drawComplexCircle(220, 550, 90, 70, 20);
 drawDuelCircle(400, 320, 30, 20);
 drawSpecialCircle(160, 300, 20, 15);
 
- // Draw "randomCircles"
-for (let circle of randomCircles) {
-  fill(circle.fill);
-  ellipse(...circle.pattern);
+ // Draw "randomCircles" and find smallest circle
+ for (let i = 0; i < randomCircles.length; i++) {
+  if (smallestCirclesIndices.includes(i)) {
+    if ((smallestCirclesIndices.indexOf(i) % 2 === 0 && !visibleStates1[i]) ||
+        (smallestCirclesIndices.indexOf(i) % 2 !== 0 && !visibleStates2[i])) {
+      continue;
+    }
+  }
+  fill(randomCircles[i].fill);
+  ellipse(...randomCircles[i].pattern);
 }
 }
+
 
 
 // Fit canvas and pattern to window size
